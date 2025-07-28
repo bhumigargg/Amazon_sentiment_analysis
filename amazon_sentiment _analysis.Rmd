@@ -1,0 +1,58 @@
+---
+title: "Amazon Review Sentiment Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Install necessary packages (only run once)
+packages <- c("dplyr", "ggplot2", "tm", "wordcloud", "sentimentr", "RColorBrewer")
+installed <- packages %in% rownames(installed.packages())
+if(any(!installed)) install.packages(packages[!installed])
+
+# Load libraries
+library(dplyr)
+library(ggplot2)
+library(tm)
+library(wordcloud)
+library(sentimentr)
+library(RColorBrewer)
+# Load the dataset from specified path
+file_path <- "D:/RProject/amazon.csv"
+amazon_data <- read.csv(file_path, stringsAsFactors = FALSE)
+
+# Keep only the column with review content
+amazon_reviews <- amazon_data$review_content
+amazon_reviews <- na.omit(amazon_reviews)  # remove NA rows
+# Perform sentiment analysis
+sentiments <- sentiment_by(amazon_reviews)
+
+# Plot average sentiment score distribution
+ggplot(sentiments, aes(ave_sentiment)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue", color = "white") +
+  labs(title = "Sentiment Score Distribution", x = "Average Sentiment", y = "Count") +
+  theme_minimal()
+# Text cleaning for wordcloud
+corpus <- Corpus(VectorSource(amazon_reviews))
+corpus <- corpus %>%
+  tm_map(content_transformer(tolower)) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removeWords, stopwords("english")) %>%
+  tm_map(stripWhitespace)
+
+# Create term-document matrix and calculate word frequency
+tdm <- TermDocumentMatrix(corpus)
+m <- as.matrix(tdm)
+word_freq <- sort(rowSums(m), decreasing = TRUE)
+
+# Filter valid words
+word_freq <- word_freq[!is.na(word_freq) & word_freq > 0 & nchar(names(word_freq)) > 1]
+
+# Generate word cloud
+wordcloud(
+  words = names(word_freq),
+  freq = word_freq,
+  min.freq = 3,
+  random.order = FALSE,
+  colors = brewer.pal(8, "Dark2")
+)
