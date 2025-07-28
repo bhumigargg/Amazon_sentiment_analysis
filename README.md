@@ -24,7 +24,7 @@ R packages:
 ## 📄 How to Use
 
 1. Place `amazon.csv` in `D:/RProject/`
-2. Open `first.Rmd` in RStudio
+2. Open `amazon_sentiment_analysis.Rmd` in RStudio
 3. Click **Knit** to run and generate the HTML output
 
 ---
